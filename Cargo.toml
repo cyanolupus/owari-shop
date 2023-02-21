@@ -12,11 +12,12 @@ default = ["console_error_panic_hook"]
 
 [dependencies]
 cfg-if = "0.1.2"
-worker = "0.0.9"
+worker = "0.0.12"
 punycode = "0.4.1"
 image = "0.23.14"
 imageproc = "0.22.0"
 rusttype = "0.9.2"
+include-bytes-zstd = "0.1.0"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -26,4 +27,4 @@ console_error_panic_hook = { version = "0.1.1", optional = true }
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.
-opt-level = "s"
+opt-level = "z"

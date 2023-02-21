@@ -107,7 +107,8 @@ fn owariya_image(subdomain: String) -> image::DynamicImage {
     let width = 256;
     let background_color = Rgba([192u8, 192u8, 192u8, 255u8]);
     let font_color = Rgba([0u8, 0u8, 0u8, 255u8]);
-    let font = Font::try_from_vec(Vec::from(include_bytes!("../static/Koruri-Extrabold-web.ttf") as &[u8])).unwrap();
+    let compressed_ttf = include_bytes_zstd::include_bytes_zstd!("./static/Koruri-Extrabold-subset.ttf", 21);
+    let font = Font::try_from_vec(compressed_ttf).unwrap();
 
     let mut img = image::DynamicImage::new_rgb8(width, height);
 
