@@ -31,7 +31,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                     let (subdomain, host) = parse_host(host.to_string());
                     let subdomain_punycode = convert_punycode(subdomain);
                     let mut title = format!("{}おわりや", subdomain_punycode);
-                    let mut message = format!("{}のおわりが売ってる", subdomain_punycode);
+                    let mut message = format!("{}おわりが売ってる", subdomain_punycode);
 
                     match subdomain_punycode.as_str() {
                         "jinsei" => {
