@@ -45,4 +45,4 @@ jobs:
       - name: Run rustfmt
         run: cargo fmt --all -- --check
       - name: Run clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy -- -D warnings --target wasm32-unknown-unknown
