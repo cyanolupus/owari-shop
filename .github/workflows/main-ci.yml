@@ -30,6 +30,4 @@ jobs:
       - name: Publish
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: |
-          cargo check --target wasm32-unknown-unknown
-          wrangler publish
+        run: wrangler publish

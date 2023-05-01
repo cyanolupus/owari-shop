@@ -28,9 +28,7 @@ jobs:
         with:
           version: 'latest'
       - name: Publish
-        run: |
-          cargo check --target wasm32-unknown-unknown
-          wrangler publish --dry-run
+        run: wrangler publish --dry-run
 
   lint:
     runs-on: ubuntu-latest
