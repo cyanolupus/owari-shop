@@ -10,11 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Publish
-        uses: cloudflare/wrangler-action@2.0.0
+      - uses: actions/setup-node@v2
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          command: publish --dry-run
+          node-version: 16
+          cache: npm
+      - name: Setup Wrangler
+        run: npm i -g wrangler
+      - name: Publish
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: wrangler publish --dry-run
 
   lint:
     runs-on: ubuntu-latest
