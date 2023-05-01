@@ -1,5 +1,9 @@
 name: PR CI
 
+concurrency:
+  group: pull-request-${{ github.event.number }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     branches:

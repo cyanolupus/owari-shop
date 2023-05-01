@@ -1,5 +1,9 @@
 name: main CI
 
+concurrency:
+  group: main
+  cancel-in-progress: false
+
 on:
   push:
     branches:
