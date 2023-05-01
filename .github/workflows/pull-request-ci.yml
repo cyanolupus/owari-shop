@@ -14,14 +14,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: git-restore-mtime
+        uses: chetan/git-restore-mtime-action@v2.0
       - uses: actions/setup-node@v2
         with:
           node-version: 16
       - name: Setup Wrangler
         run: npm i -g wrangler
+      - name: Setup cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Publish
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CARGO_INCREMENTAL: 1
         run: wrangler publish --dry-run
 
   lint:
