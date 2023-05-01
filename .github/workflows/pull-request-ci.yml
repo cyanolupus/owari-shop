@@ -13,7 +13,7 @@ jobs:
   dry-run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: 16
@@ -28,21 +28,17 @@ jobs:
         with:
           version: 'latest'
       - name: Publish
-        run: |
-          cargo check
-          wrangler publish --dry-run
+        run: wrangler publish --dry-run
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: rustfmt, clippy
-      - name: Run check
-        run: cargo check
       - name: Run rustfmt
         run: cargo fmt --all -- --check
       - name: Run clippy
