@@ -4,6 +4,7 @@ use punycode::decode;
 use rusttype::{Font, Scale};
 use worker::*;
 
+mod r2;
 mod utils;
 
 fn log_request(req: &Request) {
@@ -62,50 +63,63 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             let version = ctx.var("WORKERS_RS_VERSION")?.to_string();
             Response::ok(version)
         })
-        .get("/favicon.ico", |req, _| {
+        .get_async("/favicon.ico", |req, ctx| async move {
+            let font = match r2::get(ctx, "Koruri-Extrabold.ttf").await {
+                Some(font_bytes) => Font::try_from_vec(font_bytes).unwrap(),
+                None => return Response::error("Internal server error: cant find font", 500),
+            };
+
             let host = req.headers().get("host").unwrap_or_default();
-            match host {
+            let subdomain_punycode = match host {
                 Some(host) => {
                     let (subdomain, _) = parse_host(host);
-                    let subdomain_punycode = convert_punycode(subdomain);
-                    let emoji = owariya_image(subdomain_punycode);
-                    let mut emoji_ico = Vec::new();
-                    match emoji.write_to(&mut emoji_ico, image::ImageOutputFormat::Ico) {
-                        Ok(_) => Response::from_bytes(emoji_ico),
-                        Err(_) => Response::ok(""),
-                    }
+                    convert_punycode(subdomain)
                 }
-                None => Response::ok(""),
-            }
+                None => "".to_string(),
+            };
+            let emoji = owariya_image(subdomain_punycode, font);
+            let emoji_png = match write_image(emoji, image::ImageOutputFormat::Ico) {
+                Some(emoji_png) => emoji_png,
+                None => return Response::error("Internal server error: cant create image", 500),
+            };
+            Response::from_bytes(emoji_png)
         })
-        .get("/owariya.png", |req, _| {
+        .get_async("/owariya.png", |req, ctx| async move {
+            let font = match r2::get(ctx, "Koruri-Extrabold.ttf").await {
+                Some(font_bytes) => Font::try_from_vec(font_bytes).unwrap(),
+                None => return Response::error("Internal server error: cant find font", 500),
+            };
+
             let host = req.headers().get("host").unwrap_or_default();
-            match host {
+            let subdomain_punycode = match host {
                 Some(host) => {
                     let (subdomain, _) = parse_host(host);
-                    let subdomain_punycode = convert_punycode(subdomain);
-                    let emoji = owariya_image(subdomain_punycode);
-                    let mut emoji_png = Vec::new();
-                    match emoji.write_to(&mut emoji_png, image::ImageOutputFormat::Png) {
-                        Ok(_) => Response::from_bytes(emoji_png),
-                        Err(_) => Response::ok(""),
-                    }
+                    convert_punycode(subdomain)
                 }
-                None => Response::ok(""),
-            }
+                None => "".to_string(),
+            };
+            let emoji = owariya_image(subdomain_punycode, font);
+            let emoji_png = match write_image(emoji, image::ImageOutputFormat::Png) {
+                Some(emoji_png) => emoji_png,
+                None => return Response::error("Internal server error: cant create image", 500),
+            };
+            Response::from_bytes(emoji_png)
         })
         .run(req, env)
         .await
 }
 
-fn owariya_image(subdomain: String) -> image::DynamicImage {
+fn write_image(dynamic: image::DynamicImage, format: image::ImageOutputFormat) -> Option<Vec<u8>> {
+    let mut buf = Vec::new();
+    dynamic.write_to(&mut buf, format).ok()?;
+    Some(buf)
+}
+
+fn owariya_image(subdomain: String, font: Font) -> image::DynamicImage {
     let height = 256;
     let width = 256;
     let background_color = Rgba([192u8, 192u8, 192u8, 255u8]);
     let font_color = Rgba([0u8, 0u8, 0u8, 255u8]);
-    let compressed_ttf =
-        include_bytes_zstd::include_bytes_zstd!("./static/Koruri-Extrabold-subset.ttf", 21);
-    let font = Font::try_from_vec(compressed_ttf).unwrap();
 
     let mut img = image::DynamicImage::new_rgb8(width, height);
 
