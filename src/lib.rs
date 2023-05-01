@@ -1,8 +1,8 @@
-use worker::*;
-use punycode::decode;
 use image::Rgba;
 use imageproc::drawing::{draw_text_mut, Canvas};
+use punycode::decode;
 use rusttype::{Font, Scale};
+use worker::*;
 
 mod utils;
 
@@ -58,12 +58,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 None => Response::ok(""),
             }
         })
-
         .get("/worker-version", |_, ctx| {
             let version = ctx.var("WORKERS_RS_VERSION")?.to_string();
             Response::ok(version)
         })
-
         .get("/favicon.ico", |req, _| {
             let host = req.headers().get("host").unwrap_or_default();
             match host {
@@ -80,7 +78,6 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 None => Response::ok(""),
             }
         })
-
         .get("/owariya.png", |req, _| {
             let host = req.headers().get("host").unwrap_or_default();
             match host {
@@ -97,7 +94,6 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 None => Response::ok(""),
             }
         })
-
         .run(req, env)
         .await
 }
@@ -107,7 +103,8 @@ fn owariya_image(subdomain: String) -> image::DynamicImage {
     let width = 256;
     let background_color = Rgba([192u8, 192u8, 192u8, 255u8]);
     let font_color = Rgba([0u8, 0u8, 0u8, 255u8]);
-    let compressed_ttf = include_bytes_zstd::include_bytes_zstd!("./static/Koruri-Extrabold-subset.ttf", 21);
+    let compressed_ttf =
+        include_bytes_zstd::include_bytes_zstd!("./static/Koruri-Extrabold-subset.ttf", 21);
     let font = Font::try_from_vec(compressed_ttf).unwrap();
 
     let mut img = image::DynamicImage::new_rgb8(width, height);
@@ -127,17 +124,25 @@ fn owariya_image(subdomain: String) -> image::DynamicImage {
     if subdomain == "" {
         let owa = "おわ".to_string();
         let riya = "りや".to_string();
-        let scale_owa = get_scale_by_font(height_f32/2.0, width_f32, &font, &owa);
-        let scale_riya = get_scale_by_font(height_f32/2.0, width_f32, &font, &riya);
+        let scale_owa = get_scale_by_font(height_f32 / 2.0, width_f32, &font, &owa);
+        let scale_riya = get_scale_by_font(height_f32 / 2.0, width_f32, &font, &riya);
         draw_text_mut(&mut img, font_color, x, y, scale_owa, &font, &owa);
-        y += height/2;
+        y += height / 2;
         draw_text_mut(&mut img, font_color, x, y, scale_riya, &font, &riya);
     } else {
         let owariya = "おわりや".to_string();
-        let scale_subdomain = get_scale_by_font(height_f32/2.0, width_f32, &font, &subdomain);
-        let scale_owariya = get_scale_by_font(height_f32/2.0, width_f32, &font, &owariya);
-        draw_text_mut(&mut img, font_color, x, y, scale_subdomain, &font, &subdomain);
-        y += height/2;
+        let scale_subdomain = get_scale_by_font(height_f32 / 2.0, width_f32, &font, &subdomain);
+        let scale_owariya = get_scale_by_font(height_f32 / 2.0, width_f32, &font, &owariya);
+        draw_text_mut(
+            &mut img,
+            font_color,
+            x,
+            y,
+            scale_subdomain,
+            &font,
+            &subdomain,
+        );
+        y += height / 2;
         draw_text_mut(&mut img, font_color, x, y, scale_owariya, &font, &owariya);
     }
 
