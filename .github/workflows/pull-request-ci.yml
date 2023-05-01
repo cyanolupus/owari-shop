@@ -29,7 +29,7 @@ jobs:
           version: 'latest'
       - name: Publish
         run: |
-          cargo check
+          cargo check --target wasm32-unknown-unknown
           wrangler publish --dry-run
 
   lint:
@@ -40,9 +40,10 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+          targets: wasm32-unknown-unknown
           components: rustfmt, clippy
       - name: Run check
-        run: cargo check
+        run: cargo check --target wasm32-unknown-unknown
       - name: Run rustfmt
         run: cargo fmt --all -- --check
       - name: Run clippy
