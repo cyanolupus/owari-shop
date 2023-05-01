@@ -2,7 +2,7 @@ name = "owari-shop"
 workers_dev = true
 compatibility_date = "2023-01-15"
 main = "build/worker/shim.mjs"
-vars = { WORKERS_RS_VERSION = "0.0.12" }
+vars = { WORKERS_RS_VERSION = "0.0.16" }
 routes = [
     "owari.shop/*",
     "*.owari.shop/*",
@@ -10,6 +10,11 @@ routes = [
 
 [build]
 command = "cargo install -q worker-build && worker-build --release" # required
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "owari-shop"
+preview_bucket_name = "owari-shop"
 
 # read more about configuring your Worker via wrangler.toml at:
 # https://developers.cloudflare.com/workers/cli-wrangler/configuration
