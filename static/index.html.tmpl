@@ -14,21 +14,22 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="@cyanolupus" />
     <meta name=“twitter:image” content=“https://{{ .Domain }}/owariya.png“ />
+    <style>
+        .btn{align-items:center;width:60px;height:60px;font-size:30px;border-radius:10%;border:none;background:#fff;}
+        .btn:hover{background: #aaa;}
+    </style>
 </head>
 
 <body>
 <h1>{{ .Title }}</h1>
 {{ .Message }}
 
-<!-- AddToAny BEGIN -->
-<div class="a2a_kit a2a_kit_size_32 a2a_default_style">
-<a class="a2a_dd" href="https://www.addtoany.com/share"></a>
-<a class="a2a_button_copy_link"></a>
-<a class="a2a_button_twitter"></a>
-<a class="a2a_button_mastodon"></a>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
+<script>new Clipboard('.btn').on('success',function(e){document.getElementById("copybtn").innerHTML="✅";});</script>
+
+<div>
+    <button id="copybtn" class="btn" data-clipboard-text="{{ .Title }}&#10;https://{{ .Domain }}">📋</button>
 </div>
-<script async src="https://static.addtoany.com/menu/page.js"></script>
-<!-- AddToAny END -->
 
 <!-- Cloudflare Workers -->
 
