@@ -47,6 +47,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                             title = "今年もおわりや".to_string();
                             message = "あけましておめでとうございます".to_string();
                         }
+                        "kyoumo" => {
+                            title = "今日もおわりや".to_string();
+                            message = "一日お疲れ様でした".to_string();
+                        }
                         "" => {
                             title = "おわりや".to_string();
                             message = "おわりが売ってる".to_string();
