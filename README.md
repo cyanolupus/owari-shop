@@ -5,7 +5,7 @@
 ```bash
 # Put assets (fonts)
 wrangler r2 bucket create owari-shop
-wrangler r2 object put owari-shop/Koruri-Extrabold.ttf --file="static/Koruri-Extrabold.ttf"
+wrangler r2 object put owari-shop/font.ttf --file="static/Koruri-Extrabold.ttf"
 
 # Deploy
 wrangler publish
