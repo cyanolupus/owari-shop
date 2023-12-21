@@ -1,5 +1,3 @@
-use punycode;
-
 pub struct Hostdata {
     pub subdomain: String,
     pub domain: String,

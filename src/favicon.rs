@@ -8,10 +8,30 @@ pub struct FaviconGenerator {
     top_top_half_text: String,
     top_half_text: String,
     bottom_half_text: String,
+    image_properties: ImageProperties,
+}
+
+pub struct ImageProperties {
     height: u32,
     width: u32,
     background_color: Rgba<u8>,
     font_color: Rgba<u8>,
+}
+
+impl ImageProperties {
+    pub fn new(
+        height: u32,
+        width: u32,
+        background_color: Rgba<u8>,
+        font_color: Rgba<u8>,
+    ) -> Self {
+        Self {
+            height,
+            width,
+            background_color,
+            font_color,
+        }
+    }
 }
 
 impl FaviconGenerator {
@@ -20,20 +40,14 @@ impl FaviconGenerator {
         top_top_half_text: String,
         top_half_text: String,
         bottom_half_text: String,
-        height: u32,
-        width: u32,
-        background_color: Rgba<u8>,
-        font_color: Rgba<u8>,
+        image_properties: ImageProperties,
     ) -> Self {
         Self {
             fontpath,
             top_top_half_text,
             top_half_text,
             bottom_half_text,
-            height,
-            width,
-            background_color,
-            font_color,
+            image_properties,
         }
     }
 
@@ -60,16 +74,16 @@ impl FaviconGenerator {
     }
 
     fn owariya_image(&self, font: Font<'_>) -> image::DynamicImage {
-        let mut img = image::DynamicImage::new_rgb8(self.width, self.height);
+        let mut img = image::DynamicImage::new_rgb8(self.image_properties.width, self.image_properties.height);
 
         let x = 0;
         let mut y = 0;
-        let height_f32 = self.height as f32;
-        let width_f32 = self.width as f32;
+        let height_f32 = self.image_properties.height as f32;
+        let width_f32 = self.image_properties.width as f32;
 
-        for x in 0..self.width {
-            for y in 0..self.height {
-                img.draw_pixel(x, y, self.background_color)
+        for x in 0..self.image_properties.width {
+            for y in 0..self.image_properties.height {
+                img.draw_pixel(x, y, self.image_properties.background_color)
             }
         }
 
@@ -80,17 +94,17 @@ impl FaviconGenerator {
                 Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.bottom_half_text);
             draw_text_mut(
                 &mut img,
-                self.font_color,
+                self.image_properties.font_color,
                 x,
                 y,
                 scale_top_half,
                 &font,
                 &self.top_half_text,
             );
-            y += self.height / 2;
+            y += self.image_properties.height / 2;
             draw_text_mut(
                 &mut img,
-                self.font_color,
+                self.image_properties.font_color,
                 x,
                 y,
                 scale_bottom_half,
@@ -114,17 +128,17 @@ impl FaviconGenerator {
             );
             draw_text_mut(
                 &mut img,
-                self.font_color,
+                self.image_properties.font_color,
                 x,
                 y,
                 scale_top_top_half,
                 &font,
                 &self.top_top_half_text,
             );
-            y += self.height / 2;
+            y += self.image_properties.height / 2;
             draw_text_mut(
                 &mut img,
-                self.font_color,
+                self.image_properties.font_color,
                 x,
                 y,
                 scale_bottom_bottom_half,
@@ -139,7 +153,7 @@ impl FaviconGenerator {
     async fn get_font<D>(&self, ctx: &RouteContext<D>) -> Option<Font<'static>> {
         match Self::r2_get(ctx, &self.fontpath).await {
             Some(font_bytes) => Font::try_from_vec(font_bytes),
-            None => return None,
+            None => None,
         }
     }
 

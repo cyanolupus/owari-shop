@@ -45,11 +45,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
             let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
 
-            let favicon_generator = favicon::FaviconGenerator::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
-                hostdata.decoded_subdomain,
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+            let image_properties = favicon::ImageProperties::new(
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_HEIGHT", "256")
                     .parse::<u32>()
                     .unwrap_or(256),
@@ -67,6 +63,13 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                     "#000000ff",
                 )),
             );
+            let favicon_generator = favicon::FaviconGenerator::new(
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
+                hostdata.decoded_subdomain,
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+                image_properties,
+            );
 
             let image_ico = match favicon_generator.write_ico(&ctx).await {
                 Some(ico) => ico,
@@ -83,11 +86,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
             let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
 
-            let favicon_generator = favicon::FaviconGenerator::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
-                hostdata.decoded_subdomain,
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+            let image_properties = favicon::ImageProperties::new(
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256")
                     .parse::<u32>()
                     .unwrap_or(256),
@@ -104,6 +103,13 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                     "WILDCARDSUBDOMAIN_FONT_COLOR",
                     "#000000ff",
                 )),
+            );
+            let favicon_generator = favicon::FaviconGenerator::new(
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
+                hostdata.decoded_subdomain,
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+                image_properties,
             );
             let image_png = match favicon_generator.write_png(&ctx).await {
                 Some(png) => png,
