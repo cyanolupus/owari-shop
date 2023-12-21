@@ -25,7 +25,7 @@
 {{ .Message }}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
-<script>new Clipboard('.btn').on('success',function(e){document.getElementById("copybtn").innerHTML="✅";});</script>
+<script>new Clipboard('.btn').on('success',function(e){document.getElementById("copybtn").innerHTML="{{ .Emoji }}";});</script>
 
 <div>
     <button id="copybtn" class="btn" data-clipboard-text="{{ .Title }}&#10;https://{{ .Host }}">📋</button>

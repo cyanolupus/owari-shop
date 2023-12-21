@@ -41,6 +41,7 @@ impl Hostdata {
         html.replace("{{ .Title }}", &self.get_title())
             .replace("{{ .Message }}", &self.get_message())
             .replace("{{ .Host }}", &self.host)
+            .replace("{{ .Emoji }}", &self.get_emoji())
     }
 
     fn get_title(&self) -> String {
@@ -63,6 +64,22 @@ impl Hostdata {
             "kyoumo" => "一日お疲れ様でした".to_string(),
             "" => "おわりが売ってる".to_string(),
             decoded_subdomain => format!("{}おわりが売ってる", decoded_subdomain),
+        }
+    }
+
+    fn get_emoji(&self) -> String {
+        match self.decoded_subdomain.as_str() {
+            "christmas" => "🎄".to_string(),
+            "クリスマス" => "🎄".to_string(),
+            "halloween" => "🎃".to_string(),
+            "ハロウィン" => "🎃".to_string(),
+            "konnendomo" => "🌸".to_string(),
+            "今年度も" => "🌸".to_string(),
+            "kotoshimo" => "🌅".to_string(),
+            "今年も" => "🌅".to_string(),
+            "kyoumo" => "🌙".to_string(),
+            "今日も" => "🌙".to_string(),
+            _ => "✅".to_string(),
         }
     }
 }
