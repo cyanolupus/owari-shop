@@ -19,12 +19,7 @@ pub struct ImageProperties {
 }
 
 impl ImageProperties {
-    pub fn new(
-        height: u32,
-        width: u32,
-        background_color: Rgba<u8>,
-        font_color: Rgba<u8>,
-    ) -> Self {
+    pub fn new(height: u32, width: u32, background_color: Rgba<u8>, font_color: Rgba<u8>) -> Self {
         Self {
             height,
             width,
@@ -74,7 +69,10 @@ impl FaviconGenerator {
     }
 
     fn owariya_image(&self, font: Font<'_>) -> image::DynamicImage {
-        let mut img = image::DynamicImage::new_rgb8(self.image_properties.width, self.image_properties.height);
+        let mut img = image::DynamicImage::new_rgb8(
+            self.image_properties.width,
+            self.image_properties.height,
+        );
 
         let x = 0;
         let mut y = 0;
