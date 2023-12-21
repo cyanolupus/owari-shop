@@ -15,33 +15,17 @@ pub struct FaviconGenerator {
 }
 
 impl FaviconGenerator {
-    pub fn new(fontpath: String, top_top_half_text: String, top_half_text: String, bottom_half_text: String) -> Self {
+    pub fn new(fontpath: String, top_top_half_text: String, top_half_text: String, bottom_half_text: String, height: u32, width: u32, background_color: Rgba<u8>, font_color: Rgba<u8>) -> Self {
         Self {
             fontpath,
             top_top_half_text,
             top_half_text,
             bottom_half_text,
-            height: 256,
-            width: 256,
-            background_color: Rgba([192u8, 192u8, 192u8, 255u8]),
-            font_color: Rgba([0u8, 0u8, 0u8, 255u8]),
+            height,
+            width,
+            background_color,
+            font_color,
         }
-    }
-
-    pub fn set_height(self, height: u32) -> Self {
-        Self { height, ..self }
-    }
-
-    pub fn set_width(self, width: u32) -> Self {
-        Self { width, ..self }
-    }
-
-    pub fn set_background_color(self, background_color: Rgba<u8>) -> Self {
-        Self { background_color, ..self }
-    }
-
-    pub fn set_font_color(self, font_color: Rgba<u8>) -> Self {
-        Self { font_color, ..self }
     }
 
     pub async fn write_ico<D>(&self, ctx: &RouteContext<D>) -> Option<Vec<u8>> {

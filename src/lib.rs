@@ -1,4 +1,5 @@
 use worker::*;
+use image::Rgba;
 
 mod utils;
 mod wildcardsubdomain;
@@ -41,6 +42,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 hostdata.decoded_subdomain,
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_HEIGHT", "256").parse::<u32>().unwrap_or(256),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_WIDTH", "256").parse::<u32>().unwrap_or(256),
+                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BACKGROUND_COLOR", "#c0c0c0ff")),
+                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT_COLOR", "#000000ff")),
             );
 
             let image_ico = match favicon_generator.write_ico(&ctx).await {
@@ -59,6 +64,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 hostdata.decoded_subdomain,
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256").parse::<u32>().unwrap_or(256),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256").parse::<u32>().unwrap_or(256),
+                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BACKGROUND_COLOR", "#c0c0c0ff")),
+                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT_COLOR", "#000000ff")),
             );
             let image_png = match favicon_generator.write_png(&ctx).await {
                 Some(png) => png,
@@ -75,4 +84,13 @@ fn get_var_or_default<D>(ctx: &RouteContext<D>, key: &str, default: &str) -> Str
         Ok(value) => value.to_string(),
         Err(_) => default.to_string(),
     }
+}
+
+fn rgba_from_hex(hex: &str) -> Rgba<u8> {
+    let hex = hex.trim_start_matches('#');
+    let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(0);
+    let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0);
+    let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0);
+    let a = u8::from_str_radix(&hex[6..8], 16).unwrap_or(255);
+    Rgba([r, g, b, a])
 }
