@@ -8,12 +8,12 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="{{ .Title }}" />
     <meta property="og:description" content="{{ .Message }}" />
-    <meta property="og:url" content="https://{{ .Domain }}/" />
+    <meta property="og:url" content="https://{{ .Host }}/" />
     <meta property="og:site_name" content="owari.shop" />
-    <meta property="og:image" content="https://{{ .Domain }}/owariya.png" />
+    <meta property="og:image" content="https://{{ .Host }}/owariya.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="@cyanolupus" />
-    <meta name=“twitter:image” content=“https://{{ .Domain }}/owariya.png“ />
+    <meta name=“twitter:image” content=“https://{{ .Host }}/owariya.png“ />
     <style>
         .btn{align-items:center;width:60px;height:60px;font-size:30px;border-radius:10%;border:none;background:#fff;}
         .btn:hover{background: #aaa;}
@@ -25,10 +25,10 @@
 {{ .Message }}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
-<script>new Clipboard('.btn').on('success',function(e){document.getElementById("copybtn").innerHTML="✅";});</script>
+<script>new Clipboard('.btn').on('success',function(e){document.getElementById("copybtn").innerHTML="{{ .Emoji }}";});</script>
 
 <div>
-    <button id="copybtn" class="btn" data-clipboard-text="{{ .Title }}&#10;https://{{ .Domain }}">📋</button>
+    <button id="copybtn" class="btn" data-clipboard-text="{{ .Title }}&#10;https://{{ .Host }}">📋</button>
 </div>
 
 <!-- Cloudflare Workers -->
