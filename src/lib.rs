@@ -1,11 +1,11 @@
 use image::Rgba;
 use imageproc::drawing::{draw_text_mut, Canvas};
-use punycode::decode;
 use rusttype::{Font, Scale};
 use worker::*;
 
 mod r2;
 mod utils;
+mod wildcardsubdomain;
 
 fn log_request(req: &Request) {
     console_log!(
@@ -24,64 +24,32 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
     let router = Router::new();
     router
-        // return subdomain html
-        .get("/", |req, _| {
-            let host = req.headers().get("host").unwrap_or_default();
-            match host {
-                Some(host) => {
-                    let (subdomain, host) = parse_host(host);
-                    let subdomain_punycode = convert_punycode(subdomain);
-                    let mut title = format!("{}おわりや", subdomain_punycode);
-                    let mut message = format!("{}おわりが売ってる", subdomain_punycode);
-
-                    match subdomain_punycode.as_str() {
-                        "jinsei" => {
-                            title = "人生おわりや".to_string();
-                            message = "もうだめ".to_string();
-                        }
-                        "konnendomo" => {
-                            title = "今年度もおわりや".to_string();
-                            message = "おめでとうございます".to_string();
-                        }
-                        "kotoshimo" => {
-                            title = "今年もおわりや".to_string();
-                            message = "あけましておめでとうございます".to_string();
-                        }
-                        "kyoumo" => {
-                            title = "今日もおわりや".to_string();
-                            message = "一日お疲れ様でした".to_string();
-                        }
-                        "" => {
-                            title = "おわりや".to_string();
-                            message = "おわりが売ってる".to_string();
-                        }
-                        _ => {}
-                    }
-                    let html = create_html(title, message, host);
-                    Response::from_html(html)
-                }
-                None => Response::ok(""),
-            }
+        .get("/", |req, ctx| {
+            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let domain = match ctx.var("WILDCARDSUBDOMAIN_DOMAIN") {
+                Ok(domain) => domain.to_string(),
+                Err(_) => "owari.shop".to_string(),
+            };
+            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
+            Response::from_html(hostdata.create_html())
         })
         .get("/worker-version", |_, ctx| {
             let version = ctx.var("WORKERS_RS_VERSION")?.to_string();
             Response::ok(version)
         })
         .get_async("/favicon.ico", |req, ctx| async move {
-            let font = match r2::get(ctx, "Koruri-Extrabold.ttf").await {
+            let font = match r2::get(&ctx, "Koruri-Extrabold.ttf").await {
                 Some(font_bytes) => Font::try_from_vec(font_bytes).unwrap(),
                 None => return Response::error("Internal server error: cant find font", 500),
             };
 
-            let host = req.headers().get("host").unwrap_or_default();
-            let subdomain_punycode = match host {
-                Some(host) => {
-                    let (subdomain, _) = parse_host(host);
-                    convert_punycode(subdomain)
-                }
-                None => "".to_string(),
+            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let domain = match ctx.var("WILDCARDSUBDOMAIN_DOMAIN") {
+                Ok(domain) => domain.to_string(),
+                Err(_) => "owari.shop".to_string(),
             };
-            let emoji = owariya_image(subdomain_punycode, font);
+            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
+            let emoji = owariya_image(hostdata.decoded_subdomain, font);
             let emoji_png = match write_image(emoji, image::ImageOutputFormat::Ico) {
                 Some(emoji_png) => emoji_png,
                 None => return Response::error("Internal server error: cant create image", 500),
@@ -89,20 +57,18 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             Response::from_bytes(emoji_png)
         })
         .get_async("/owariya.png", |req, ctx| async move {
-            let font = match r2::get(ctx, "Koruri-Extrabold.ttf").await {
+            let font = match r2::get(&ctx, "Koruri-Extrabold.ttf").await {
                 Some(font_bytes) => Font::try_from_vec(font_bytes).unwrap(),
                 None => return Response::error("Internal server error: cant find font", 500),
             };
 
-            let host = req.headers().get("host").unwrap_or_default();
-            let subdomain_punycode = match host {
-                Some(host) => {
-                    let (subdomain, _) = parse_host(host);
-                    convert_punycode(subdomain)
-                }
-                None => "".to_string(),
+            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let domain = match ctx.var("WILDCARDSUBDOMAIN_DOMAIN") {
+                Ok(domain) => domain.to_string(),
+                Err(_) => "owari.shop".to_string(),
             };
-            let emoji = owariya_image(subdomain_punycode, font);
+            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
+            let emoji = owariya_image(hostdata.decoded_subdomain, font);
             let emoji_png = match write_image(emoji, image::ImageOutputFormat::Png) {
                 Some(emoji_png) => emoji_png,
                 None => return Response::error("Internal server error: cant create image", 500),
@@ -180,30 +146,4 @@ fn get_scale_by_font(height: f32, width: f32, font: &Font, text: &str) -> Scale 
         x: height * width / glyph_width_sum,
         y: height,
     }
-}
-
-fn parse_host(host: String) -> (String, String) {
-    // if owari.shop subdomain will be empty
-    let mut subdomain = String::new();
-    let domain = host;
-    if domain.contains(".owari.shop") {
-        subdomain = domain.replace(".owari.shop", "");
-    }
-    (subdomain, domain)
-}
-
-fn convert_punycode(sub: String) -> String {
-    let mut subdomain = sub;
-    if subdomain.contains("xn--") {
-        subdomain = subdomain.replace("xn--", "");
-        subdomain = decode(&subdomain).unwrap_or_default();
-    }
-    subdomain
-}
-
-fn create_html(title: String, message: String, domain: String) -> String {
-    let html = include_str!("../static/index.html.tmpl");
-    html.replace("{{ .Title }}", &title)
-        .replace("{{ .Message }}", &message)
-        .replace("{{ .Domain }}", &domain)
 }
