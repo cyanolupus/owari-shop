@@ -1,9 +1,9 @@
-use worker::*;
 use image::Rgba;
+use worker::*;
 
+mod favicon;
 mod utils;
 mod wildcardsubdomain;
-mod favicon;
 
 fn log_request(req: &Request) {
     console_log!(
@@ -23,7 +23,11 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
     let router = Router::new();
     router
         .get("/", |req, ctx| {
-            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let host = req
+                .headers()
+                .get("host")
+                .unwrap_or_default()
+                .unwrap_or_default();
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
             let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
             Response::from_html(hostdata.create_html())
@@ -33,7 +37,11 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             Response::ok(version)
         })
         .get_async("/favicon.ico", |req, ctx| async move {
-            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let host = req
+                .headers()
+                .get("host")
+                .unwrap_or_default()
+                .unwrap_or_default();
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
             let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
 
@@ -42,10 +50,22 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 hostdata.decoded_subdomain,
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_HEIGHT", "256").parse::<u32>().unwrap_or(256),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_WIDTH", "256").parse::<u32>().unwrap_or(256),
-                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BACKGROUND_COLOR", "#c0c0c0ff")),
-                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT_COLOR", "#000000ff")),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_HEIGHT", "256")
+                    .parse::<u32>()
+                    .unwrap_or(256),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_WIDTH", "256")
+                    .parse::<u32>()
+                    .unwrap_or(256),
+                rgba_from_hex(&get_var_or_default(
+                    &ctx,
+                    "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
+                    "#c0c0c0ff",
+                )),
+                rgba_from_hex(&get_var_or_default(
+                    &ctx,
+                    "WILDCARDSUBDOMAIN_FONT_COLOR",
+                    "#000000ff",
+                )),
             );
 
             let image_ico = match favicon_generator.write_ico(&ctx).await {
@@ -55,7 +75,11 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             Response::from_bytes(image_ico)
         })
         .get_async("/owariya.png", |req, ctx| async move {
-            let host = req.headers().get("host").unwrap_or_default().unwrap_or_default();
+            let host = req
+                .headers()
+                .get("host")
+                .unwrap_or_default()
+                .unwrap_or_default();
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
             let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
 
@@ -64,10 +88,22 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 hostdata.decoded_subdomain,
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
                 get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256").parse::<u32>().unwrap_or(256),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256").parse::<u32>().unwrap_or(256),
-                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BACKGROUND_COLOR", "#c0c0c0ff")),
-                rgba_from_hex(&get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT_COLOR", "#000000ff")),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256")
+                    .parse::<u32>()
+                    .unwrap_or(256),
+                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256")
+                    .parse::<u32>()
+                    .unwrap_or(256),
+                rgba_from_hex(&get_var_or_default(
+                    &ctx,
+                    "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
+                    "#c0c0c0ff",
+                )),
+                rgba_from_hex(&get_var_or_default(
+                    &ctx,
+                    "WILDCARDSUBDOMAIN_FONT_COLOR",
+                    "#000000ff",
+                )),
             );
             let image_png = match favicon_generator.write_png(&ctx).await {
                 Some(png) => png,

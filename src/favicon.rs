@@ -15,7 +15,16 @@ pub struct FaviconGenerator {
 }
 
 impl FaviconGenerator {
-    pub fn new(fontpath: String, top_top_half_text: String, top_half_text: String, bottom_half_text: String, height: u32, width: u32, background_color: Rgba<u8>, font_color: Rgba<u8>) -> Self {
+    pub fn new(
+        fontpath: String,
+        top_top_half_text: String,
+        top_half_text: String,
+        bottom_half_text: String,
+        height: u32,
+        width: u32,
+        background_color: Rgba<u8>,
+        font_color: Rgba<u8>,
+    ) -> Self {
         Self {
             fontpath,
             top_top_half_text,
@@ -36,10 +45,14 @@ impl FaviconGenerator {
         self.write_image(ctx, image::ImageOutputFormat::Png).await
     }
 
-    pub async fn write_image<D>(&self, ctx: &RouteContext<D>, format: image::ImageOutputFormat) -> Option<Vec<u8>> {
+    pub async fn write_image<D>(
+        &self,
+        ctx: &RouteContext<D>,
+        format: image::ImageOutputFormat,
+    ) -> Option<Vec<u8>> {
         let font = match self.get_font(ctx).await {
             Some(font) => font,
-            None => return None
+            None => return None,
         };
         let mut buf = Vec::new();
         self.owariya_image(font).write_to(&mut buf, format).ok()?;
@@ -61,18 +74,63 @@ impl FaviconGenerator {
         }
 
         if self.top_top_half_text.is_empty() {
-            let scale_top_half = Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.top_half_text);
-            let scale_bottom_half = Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.bottom_half_text);
-            draw_text_mut(&mut img, self.font_color, x, y, scale_top_half, &font, &self.top_half_text);
+            let scale_top_half =
+                Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.top_half_text);
+            let scale_bottom_half =
+                Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.bottom_half_text);
+            draw_text_mut(
+                &mut img,
+                self.font_color,
+                x,
+                y,
+                scale_top_half,
+                &font,
+                &self.top_half_text,
+            );
             y += self.height / 2;
-            draw_text_mut(&mut img, self.font_color, x, y, scale_bottom_half, &font, &self.bottom_half_text);
+            draw_text_mut(
+                &mut img,
+                self.font_color,
+                x,
+                y,
+                scale_bottom_half,
+                &font,
+                &self.bottom_half_text,
+            );
         } else {
-            let bottom_bottom_half_text = format!("{}{}", self.top_half_text, self.bottom_half_text);
-            let scale_top_top_half = Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.top_top_half_text);
-            let scale_bottom_bottom_half = Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &bottom_bottom_half_text);
-            draw_text_mut(&mut img, self.font_color, x, y, scale_top_top_half, &font, &self.top_top_half_text);
+            let bottom_bottom_half_text =
+                format!("{}{}", self.top_half_text, self.bottom_half_text);
+            let scale_top_top_half = Self::get_scale_by_font(
+                height_f32 / 2.0,
+                width_f32,
+                &font,
+                &self.top_top_half_text,
+            );
+            let scale_bottom_bottom_half = Self::get_scale_by_font(
+                height_f32 / 2.0,
+                width_f32,
+                &font,
+                &bottom_bottom_half_text,
+            );
+            draw_text_mut(
+                &mut img,
+                self.font_color,
+                x,
+                y,
+                scale_top_top_half,
+                &font,
+                &self.top_top_half_text,
+            );
             y += self.height / 2;
-            draw_text_mut(&mut img, self.font_color, x, y, scale_bottom_bottom_half, &font, &bottom_bottom_half_text);
+            draw_text_mut(
+                &mut img,
+                self.font_color,
+                x,
+                y,
+                scale_bottom_bottom_half,
+                &font,
+                &bottom_bottom_half_text,
+            );
         }
 
         img
@@ -81,7 +139,7 @@ impl FaviconGenerator {
     async fn get_font<D>(&self, ctx: &RouteContext<D>) -> Option<Font<'static>> {
         match Self::r2_get(ctx, &self.fontpath).await {
             Some(font_bytes) => Font::try_from_vec(font_bytes),
-            None => return None
+            None => return None,
         }
     }
 

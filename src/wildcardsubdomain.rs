@@ -1,4 +1,3 @@
-
 use punycode;
 
 pub struct Hostdata {
