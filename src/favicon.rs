@@ -5,9 +5,7 @@ use worker::RouteContext;
 
 pub struct FaviconGenerator {
     fontpath: String,
-    top_top_half_text: String,
-    top_half_text: String,
-    bottom_half_text: String,
+    target_text: Vec<String>,
     image_properties: ImageProperties,
 }
 
@@ -32,26 +30,14 @@ impl ImageProperties {
 impl FaviconGenerator {
     pub fn new(
         fontpath: String,
-        top_top_half_text: String,
-        top_half_text: String,
-        bottom_half_text: String,
+        target_text: Vec<String>,
         image_properties: ImageProperties,
     ) -> Self {
         Self {
             fontpath,
-            top_top_half_text,
-            top_half_text,
-            bottom_half_text,
+            target_text,
             image_properties,
         }
-    }
-
-    pub async fn write_ico<D>(&self, ctx: &RouteContext<D>) -> Option<Vec<u8>> {
-        self.write_image(ctx, image::ImageOutputFormat::Ico).await
-    }
-
-    pub async fn write_png<D>(&self, ctx: &RouteContext<D>) -> Option<Vec<u8>> {
-        self.write_image(ctx, image::ImageOutputFormat::Png).await
     }
 
     pub async fn write_image<D>(
@@ -64,11 +50,11 @@ impl FaviconGenerator {
             None => return None,
         };
         let mut buf = Vec::new();
-        self.owariya_image(font).write_to(&mut buf, format).ok()?;
+        self.create_image(font).write_to(&mut buf, format).ok()?;
         Some(buf)
     }
 
-    fn owariya_image(&self, font: Font<'_>) -> image::DynamicImage {
+    fn create_image(&self, font: Font<'_>) -> image::DynamicImage {
         let mut img = image::DynamicImage::new_rgb8(
             self.image_properties.width,
             self.image_properties.height,
@@ -85,64 +71,19 @@ impl FaviconGenerator {
             }
         }
 
-        if self.top_top_half_text.is_empty() {
-            let scale_top_half =
-                Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.top_half_text);
-            let scale_bottom_half =
-                Self::get_scale_by_font(height_f32 / 2.0, width_f32, &font, &self.bottom_half_text);
+        let text_height = height_f32 / (self.target_text.len() as f32);
+        for text in &self.target_text {
+            let scale = Self::get_scale_by_font(text_height, width_f32, &font, text);
             draw_text_mut(
                 &mut img,
                 self.image_properties.font_color,
                 x,
                 y,
-                scale_top_half,
+                scale,
                 &font,
-                &self.top_half_text,
+                text,
             );
-            y += self.image_properties.height / 2;
-            draw_text_mut(
-                &mut img,
-                self.image_properties.font_color,
-                x,
-                y,
-                scale_bottom_half,
-                &font,
-                &self.bottom_half_text,
-            );
-        } else {
-            let bottom_bottom_half_text =
-                format!("{}{}", self.top_half_text, self.bottom_half_text);
-            let scale_top_top_half = Self::get_scale_by_font(
-                height_f32 / 2.0,
-                width_f32,
-                &font,
-                &self.top_top_half_text,
-            );
-            let scale_bottom_bottom_half = Self::get_scale_by_font(
-                height_f32 / 2.0,
-                width_f32,
-                &font,
-                &bottom_bottom_half_text,
-            );
-            draw_text_mut(
-                &mut img,
-                self.image_properties.font_color,
-                x,
-                y,
-                scale_top_top_half,
-                &font,
-                &self.top_top_half_text,
-            );
-            y += self.image_properties.height / 2;
-            draw_text_mut(
-                &mut img,
-                self.image_properties.font_color,
-                x,
-                y,
-                scale_bottom_bottom_half,
-                &font,
-                &bottom_bottom_half_text,
-            );
+            y += text_height as u32;
         }
 
         img

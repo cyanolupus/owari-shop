@@ -29,7 +29,7 @@ https://developers.cloudflare.com/workers/cli-wrangler/configuration
 - `WILDCARDSUBDOMAIN_FONT` - The path to favicon's font file in bucket. Defaults to `Koruri-Extrabold.ttf`.
 - `WILDCARDSUBDOMAIN_TOP_HALF_TEXT` - The text to display in the top half of favicon. Defaults to `おわ`.
 - `WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT` - The text to display in the bottom half of favicon. Defaults to `りや`.
-- `WILDCARDSUBDOMAIN_ICO_HEIGHT`, `WILDCARDSUBDOMAIN_ICO_WIDTH` `WILDCARDSUBDOMAIN_PNG_HEIGHT` `WILDCARDSUBDOMAIN_PNG_WIDTH` - The height and width of favicon. Defaults to `256`.
+- `WILDCARDSUBDOMAIN_HEIGHT`, `WILDCARDSUBDOMAIN_WIDTH` - The height and width of favicon. Defaults to `256`.
 - `WILDCARDSUBDOMAIN_BACKGROUND_COLOR` - The background color of favicon. Defaults to `#c0c0c0ff`.
 - `WILDCARDSUBDOMAIN_FONT_COLOR` - The text color of favicon. Defaults to `#000000ff`.
 
