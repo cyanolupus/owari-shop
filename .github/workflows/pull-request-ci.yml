@@ -24,6 +24,7 @@ jobs:
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
@@ -39,6 +40,7 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
         run: cargo fmt --all -- --check
       - name: Run clippy
