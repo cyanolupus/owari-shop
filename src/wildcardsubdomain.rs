@@ -41,6 +41,7 @@ impl Hostdata {
             .replace("{{ .Message }}", &self.get_message())
             .replace("{{ .Host }}", &self.host)
             .replace("{{ .Emoji }}", &self.get_emoji())
+            .replace("{{ .Domain }}", &self.domain)
     }
 
     fn get_title(&self) -> String {
