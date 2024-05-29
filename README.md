@@ -3,15 +3,18 @@
 ## Usage
 
 ```bash
+# Install wrangler
+npm install wrangler --save-dev
+
 # Put assets (fonts)
-wrangler r2 bucket create owari-shop
-wrangler r2 object put owari-shop/font.ttf --file="static/Koruri-Extrabold.ttf"
+npx wrangler r2 bucket create owari-shop
+npx wrangler r2 object put owari-shop/font.ttf --file="static/Koruri-Extrabold.ttf"
 
 # Deploy
-wrangler publish
+npx wrangler deploy
 
 # Or develop locally
-wrangler dev
+npx wrangler dev
 ```
 
 ## Configuration
@@ -31,7 +34,7 @@ https://developers.cloudflare.com/workers/cli-wrangler/configuration
 - `WILDCARDSUBDOMAIN_FONT_COLOR` - The text color of favicon. Defaults to `#000000ff`.
 
 ```toml
-vars = { WORKERS_RS_VERSION = "0.0.16", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }
+vars = { WORKERS_RS_VERSION = "0.3.0", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }
 ```
 
 ### Workers Routes
