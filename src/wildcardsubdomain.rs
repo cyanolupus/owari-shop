@@ -1,4 +1,4 @@
-use serde_json::{Value, from_str};
+use serde_json::{from_str, Value};
 
 pub struct Hostdata {
     pub subdomain: String,
@@ -37,11 +37,14 @@ impl Hostdata {
 
     pub fn create_html(&self, title_suffix: String) -> String {
         let html = include_str!("../static/index.html.tmpl");
-        html.replace("{{ .Title }}", &format!("{}{}", self.get_title(), title_suffix))
-            .replace("{{ .Message }}", &self.get_message())
-            .replace("{{ .Host }}", &self.host)
-            .replace("{{ .Emoji }}", &self.get_emoji())
-            .replace("{{ .Domain }}", &self.domain)
+        html.replace(
+            "{{ .Title }}",
+            &format!("{}{}", self.get_title(), title_suffix),
+        )
+        .replace("{{ .Message }}", &self.get_message())
+        .replace("{{ .Host }}", &self.host)
+        .replace("{{ .Emoji }}", &self.get_emoji())
+        .replace("{{ .Domain }}", &self.domain)
     }
 
     fn get_title(&self) -> String {
@@ -62,18 +65,46 @@ impl Hostdata {
 
         let default_3tuple = match json.get("default") {
             Some(value) => {
-                let message = value.get("message").unwrap_or(&Value::Null).as_str().unwrap_or_default();
-                let emoji = value.get("emoji").unwrap_or(&Value::Null).as_str().unwrap_or_default();
-                (self.decoded_subdomain.clone(), format!("{}{}", self.decoded_subdomain, message), emoji.to_string())
+                let message = value
+                    .get("message")
+                    .unwrap_or(&Value::Null)
+                    .as_str()
+                    .unwrap_or_default();
+                let emoji = value
+                    .get("emoji")
+                    .unwrap_or(&Value::Null)
+                    .as_str()
+                    .unwrap_or_default();
+                (
+                    self.decoded_subdomain.clone(),
+                    format!("{}{}", self.decoded_subdomain, message),
+                    emoji.to_string(),
+                )
             }
-            _ => (self.decoded_subdomain.clone(), format!("{}おわりが売ってる", self.decoded_subdomain), "✅".to_string()),
+            _ => (
+                self.decoded_subdomain.clone(),
+                format!("{}おわりが売ってる", self.decoded_subdomain),
+                "✅".to_string(),
+            ),
         };
 
         match json.get(&self.decoded_subdomain) {
             Some(value) => {
-                let title = value.get("title").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.0.as_str());
-                let message = value.get("message").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.1.as_str());
-                let emoji = value.get("emoji").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.2.as_str());
+                let title = value
+                    .get("title")
+                    .unwrap_or(&Value::Null)
+                    .as_str()
+                    .unwrap_or(default_3tuple.0.as_str());
+                let message = value
+                    .get("message")
+                    .unwrap_or(&Value::Null)
+                    .as_str()
+                    .unwrap_or(default_3tuple.1.as_str());
+                let emoji = value
+                    .get("emoji")
+                    .unwrap_or(&Value::Null)
+                    .as_str()
+                    .unwrap_or(default_3tuple.2.as_str());
                 (title.to_string(), message.to_string(), emoji.to_string())
             }
             _ => default_3tuple,
