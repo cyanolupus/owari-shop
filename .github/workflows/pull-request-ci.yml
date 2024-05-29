@@ -24,13 +24,17 @@ jobs:
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
       - name: Deploy
         run: npx wrangler deploy --dry-run
 
-  lint:
+  clippy:
+    permissions:
+      contents: read
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,8 +42,23 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          components: rustfmt, clippy
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Run Clippy
+        uses: giraffate/clippy-action@v1.0.1
+        with:
+          reporter: github-pr-check
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
         run: cargo fmt --all -- --check
-      - name: Run clippy
-        run: cargo clippy -- -D warnings
