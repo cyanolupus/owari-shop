@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 16
       - name: Setup Wrangler
-        run: npm i -g wrangler
+        run: npm install wrangler --save-dev
       - name: Setup Toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -27,8 +27,8 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
-      - name: Publish
-        run: wrangler publish --dry-run
+      - name: Deploy
+        run: npx wrangler deploy --dry-run
 
   lint:
     runs-on: ubuntu-latest
