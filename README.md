@@ -25,13 +25,13 @@ https://developers.cloudflare.com/workers/cli-wrangler/configuration
 ### Workers Variables
 
 - `WORKERS_RS_VERSION` - The version of the `workers-rs` crate to use. Defaults to `0.0.16`.
-- `WILDCARDSUBDOMAIN_DOMAIN` - The domain to use for the wildcard subdomain. Defaults to `owari.shop`.
-- `WILDCARDSUBDOMAIN_FONT` - The path to favicon's font file in bucket. Defaults to `Koruri-Extrabold.ttf`.
-- `WILDCARDSUBDOMAIN_TOP_HALF_TEXT` - The text to display in the top half of favicon. Defaults to `おわ`.
-- `WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT` - The text to display in the bottom half of favicon. Defaults to `りや`.
-- `WILDCARDSUBDOMAIN_HEIGHT`, `WILDCARDSUBDOMAIN_WIDTH` - The height and width of favicon. Defaults to `256`.
-- `WILDCARDSUBDOMAIN_BACKGROUND_COLOR` - The background color of favicon. Defaults to `#c0c0c0ff`.
-- `WILDCARDSUBDOMAIN_FONT_COLOR` - The text color of favicon. Defaults to `#000000ff`.
+- `WILDCARDSUBDOMAIN_DOMAIN` - The domain to use for the wildcard subdomain.
+- `WILDCARDSUBDOMAIN_FONT` - The path to favicon's font file in bucket.
+- `WILDCARDSUBDOMAIN_TOP_HALF_TEXT` - The text to display in the top half of favicon.
+- `WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT` - The text to display in the bottom half of favicon.
+- `WILDCARDSUBDOMAIN_HEIGHT`, `WILDCARDSUBDOMAIN_WIDTH` - The height and width of favicon.
+- `WILDCARDSUBDOMAIN_BACKGROUND_COLOR` - The background color of favicon.
+- `WILDCARDSUBDOMAIN_FONT_COLOR` - The text color of favicon.
 
 ```toml
 vars = { WORKERS_RS_VERSION = "0.3.0", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }

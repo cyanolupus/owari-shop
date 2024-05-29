@@ -20,27 +20,30 @@ impl ThreeTuple {
             .and_then(|value| value.as_str().map(|s| s.to_string()))
     }
 
-    fn get_from_json(json: &Value, default: ThreeTuple, key: &str) -> ThreeTuple {
+    fn get_from_json(json: &Value, key: &str) -> ThreeTuple {
+        let default = ThreeTuple::get_default_from_json(json);
         match json.get(key) {
             Some(value) => ThreeTuple::new(
-                Self::get_str_from_json(value, "title").unwrap_or(default.title),
-                Self::get_str_from_json(value, "message").unwrap_or(default.message),
+                Self::get_str_from_json(value, "title")
+                    .unwrap_or(format!("{}{}", key, default.title)),
+                Self::get_str_from_json(value, "message")
+                    .unwrap_or(format!("{}{}", key, default.message)),
                 Self::get_str_from_json(value, "emoji").unwrap_or(default.emoji),
             ),
-            _ => default,
+            _ => ThreeTuple::new(
+                format!("{}{}", key, default.title),
+                format!("{}{}", key, default.message),
+                default.emoji,
+            ),
         }
     }
 
-    fn get_default_from_json(
-        json: &Value,
-        title: String,
-        message_suffix: String,
-        emoji: String,
-    ) -> ThreeTuple {
-        Self::get_from_json(
-            json,
-            ThreeTuple::new(title.clone(), format!("{}{}", title, message_suffix), emoji),
-            "default",
+    fn get_default_from_json(json: &Value) -> ThreeTuple {
+        let value = json.get("default").unwrap();
+        ThreeTuple::new(
+            Self::get_str_from_json(value, "title").unwrap_or_default(),
+            Self::get_str_from_json(value, "message").unwrap_or_default(),
+            Self::get_str_from_json(value, "emoji").unwrap_or_default(),
         )
     }
 }
@@ -74,14 +77,7 @@ impl Hostdata {
 
         let json_str = include_str!("../static/3tuples.json");
         let json: Value = from_str(json_str).unwrap_or_default();
-        let default_three_tuple = ThreeTuple::get_default_from_json(
-            &json,
-            subdomain,
-            "おわりが売ってる".to_string(),
-            "✅".to_string(),
-        );
-        let three_tuple =
-            ThreeTuple::get_from_json(&json, default_three_tuple.clone(), &decoded_subdomain);
+        let three_tuple = ThreeTuple::get_from_json(&json, &decoded_subdomain);
 
         Hostdata {
             domain,
