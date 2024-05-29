@@ -2,7 +2,17 @@ name = "owari-shop"
 workers_dev = true
 compatibility_date = "2023-01-15"
 main = "build/worker/shim.mjs"
-vars = { WORKERS_RS_VERSION = "0.3.0", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }
+
+vars.WORKERS_RS_VERSION = "0.3.0"
+vars.WILDCARDSUBDOMAIN_DOMAIN = "owari.shop"
+vars.WILDCARDSUBDOMAIN_FONT = "font.ttf"
+vars.WILDCARDSUBDOMAIN_TOP_HALF_TEXT = "おわ"
+vars.WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT = "りや"
+vars.WILDCARDSUBDOMAIN_HEIGHT = "256"
+vars.WILDCARDSUBDOMAIN_WIDTH = "256"
+vars.WILDCARDSUBDOMAIN_BACKGROUND_COLOR = "#c0c0c0ff"
+vars.WILDCARDSUBDOMAIN_FONT_COLOR = "#000000ff"
+
 routes = [
     "owari.shop/*",
     "*.owari.shop/*",

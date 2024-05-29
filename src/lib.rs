@@ -27,32 +27,34 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
     let router = Router::new();
     router
-        .get("/", |req, ctx| {
-            let host = req
-                .headers()
-                .get("host")
-                .unwrap_or_default()
-                .unwrap_or_default();
-            let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
-            let hostdata = Hostdata::new(host, domain);
-            Response::from_html(hostdata.create_html(format!(
-                "{}{}",
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや")
-            )))
-        })
-        .get("/worker-version", |_, ctx| {
-            let version = ctx.var("WORKERS_RS_VERSION")?.to_string();
-            Response::ok(version)
-        })
-        .get_async("/favicon.ico", |req, ctx| async move {
-            owariya_response(req, ctx, ImageOutputFormat::Ico).await
-        })
-        .get_async("/owariya.png", |req, ctx| async move {
-            owariya_response(req, ctx, ImageOutputFormat::Png).await
-        })
+        .get("/", index_response)
+        .get("/worker-version", version_response)
+        .get_async("/favicon.ico", owariya_response_ico)
+        .get_async("/owariya.png", owariya_response_png)
         .run(req, env)
         .await
+}
+
+fn index_response<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+    Response::from_html(
+        Hostdata::new(host(&req), domain(&ctx)?).create_html(format!(
+            "{}{}",
+            ctx.var("WILDCARDSUBDOMAIN_TOP_HALF_TEXT")?,
+            ctx.var("WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT")?
+        )),
+    )
+}
+
+fn version_response<D>(_: Request, ctx: RouteContext<D>) -> Result<Response> {
+    Response::ok(ctx.var("WORKERS_RS_VERSION")?.to_string())
+}
+
+async fn owariya_response_ico<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+    owariya_response(req, ctx, ImageOutputFormat::Ico).await
+}
+
+async fn owariya_response_png<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+    owariya_response(req, ctx, ImageOutputFormat::Png).await
 }
 
 async fn owariya_response<D>(
@@ -60,35 +62,25 @@ async fn owariya_response<D>(
     ctx: RouteContext<D>,
     image_format: ImageOutputFormat,
 ) -> Result<Response> {
-    let host = req
-        .headers()
-        .get("host")
-        .unwrap_or_default()
-        .unwrap_or_default();
-    let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
-    let hostdata = Hostdata::new(host, domain);
-
     let image_properties = ImageProperties::new(
-        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_HEIGHT", "256")
+        ctx.var("WILDCARDSUBDOMAIN_HEIGHT")?
+            .to_string()
             .parse::<u32>()
-            .unwrap_or(256),
-        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_WIDTH", "256")
+            .or(Err("Invalid height"))?,
+        ctx.var("WILDCARDSUBDOMAIN_WIDTH")?
+            .to_string()
             .parse::<u32>()
-            .unwrap_or(256),
-        rgba_from_hex(&get_var_or_default(
-            &ctx,
-            "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
-            "#c0c0c0ff",
-        )),
-        rgba_from_hex(&get_var_or_default(
-            &ctx,
-            "WILDCARDSUBDOMAIN_FONT_COLOR",
-            "#000000ff",
-        )),
+            .or(Err("Invalid width"))?,
+        rgba_from_hex(&ctx.var("WILDCARDSUBDOMAIN_BACKGROUND_COLOR")?.to_string()),
+        rgba_from_hex(&ctx.var("WILDCARDSUBDOMAIN_FONT_COLOR")?.to_string()),
     );
     let favicon_generator = FaviconGenerator::new(
-        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
-        owariya_text(&ctx, hostdata.decoded_subdomain),
+        ctx.var("WILDCARDSUBDOMAIN_FONT")?.to_string(),
+        owariya_text(
+            ctx.var("WILDCARDSUBDOMAIN_TOP_HALF_TEXT")?.to_string(),
+            ctx.var("WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT")?.to_string(),
+            Hostdata::new(host(&req), domain(&ctx)?).decoded_subdomain,
+        ),
         image_properties,
     );
 
@@ -100,28 +92,18 @@ async fn owariya_response<D>(
     Response::from_bytes(image)
 }
 
-fn owariya_text<D>(ctx: &RouteContext<D>, decoded_subdomain: String) -> Vec<String> {
+fn owariya_text(
+    top_half_text: String,
+    bottom_half_text: String,
+    decoded_subdomain: String,
+) -> Vec<String> {
     if decoded_subdomain.is_empty() {
-        vec![
-            get_var_or_default(ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-            get_var_or_default(ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
-        ]
+        vec![top_half_text, bottom_half_text]
     } else {
         vec![
             decoded_subdomain,
-            format!(
-                "{}{}",
-                get_var_or_default(ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや")
-            ),
+            format!("{}{}", top_half_text, bottom_half_text),
         ]
-    }
-}
-
-fn get_var_or_default<D>(ctx: &RouteContext<D>, key: &str, default: &str) -> String {
-    match ctx.var(key) {
-        Ok(value) => value.to_string(),
-        Err(_) => default.to_string(),
     }
 }
 
@@ -132,4 +114,15 @@ fn rgba_from_hex(hex: &str) -> Rgba<u8> {
     let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0);
     let a = u8::from_str_radix(&hex[6..8], 16).unwrap_or(255);
     Rgba([r, g, b, a])
+}
+
+fn host(req: &Request) -> String {
+    req.headers()
+        .get("host")
+        .unwrap_or_default()
+        .unwrap_or_default()
+}
+
+fn domain<D>(ctx: &RouteContext<D>) -> Result<String> {
+    ctx.var("WILDCARDSUBDOMAIN_DOMAIN").map(|v| v.to_string())
 }
