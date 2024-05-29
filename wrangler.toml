@@ -2,7 +2,7 @@ name = "owari-shop"
 workers_dev = true
 compatibility_date = "2023-01-15"
 main = "build/worker/shim.mjs"
-vars = { WORKERS_RS_VERSION = "0.0.16", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }
+vars = { WORKERS_RS_VERSION = "0.3.0", WILDCARDSUBDOMAIN_DOMAIN = "owari.shop" }
 routes = [
     "owari.shop/*",
     "*.owari.shop/*",
