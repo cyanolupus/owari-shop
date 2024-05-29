@@ -1,9 +1,11 @@
-use image::Rgba;
+use image::{ImageOutputFormat, Rgba};
 use worker::*;
 
 mod favicon;
+use favicon::{FaviconGenerator, ImageProperties};
 mod utils;
 mod wildcardsubdomain;
+use wildcardsubdomain::Hostdata;
 
 fn log_request(req: &Request) {
     console_log!(
@@ -32,7 +34,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 .unwrap_or_default()
                 .unwrap_or_default();
             let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
-            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
+            let hostdata = Hostdata::new(host, domain);
             Response::from_html(hostdata.create_html())
         })
         .get("/worker-version", |_, ctx| {
@@ -40,88 +42,76 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             Response::ok(version)
         })
         .get_async("/favicon.ico", |req, ctx| async move {
-            let host = req
-                .headers()
-                .get("host")
-                .unwrap_or_default()
-                .unwrap_or_default();
-            let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
-            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
-
-            let image_properties = favicon::ImageProperties::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_HEIGHT", "256")
-                    .parse::<u32>()
-                    .unwrap_or(256),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_ICO_WIDTH", "256")
-                    .parse::<u32>()
-                    .unwrap_or(256),
-                rgba_from_hex(&get_var_or_default(
-                    &ctx,
-                    "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
-                    "#c0c0c0ff",
-                )),
-                rgba_from_hex(&get_var_or_default(
-                    &ctx,
-                    "WILDCARDSUBDOMAIN_FONT_COLOR",
-                    "#000000ff",
-                )),
-            );
-            let favicon_generator = favicon::FaviconGenerator::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
-                hostdata.decoded_subdomain,
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
-                image_properties,
-            );
-
-            let image_ico = match favicon_generator.write_ico(&ctx).await {
-                Some(ico) => ico,
-                None => return Response::error("Internal server error: cant create image", 500),
-            };
-            Response::from_bytes(image_ico)
+            owariya_response(req, ctx, ImageOutputFormat::Ico).await
         })
         .get_async("/owariya.png", |req, ctx| async move {
-            let host = req
-                .headers()
-                .get("host")
-                .unwrap_or_default()
-                .unwrap_or_default();
-            let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
-            let hostdata = wildcardsubdomain::Hostdata::new(host, domain);
-
-            let image_properties = favicon::ImageProperties::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256")
-                    .parse::<u32>()
-                    .unwrap_or(256),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256")
-                    .parse::<u32>()
-                    .unwrap_or(256),
-                rgba_from_hex(&get_var_or_default(
-                    &ctx,
-                    "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
-                    "#c0c0c0ff",
-                )),
-                rgba_from_hex(&get_var_or_default(
-                    &ctx,
-                    "WILDCARDSUBDOMAIN_FONT_COLOR",
-                    "#000000ff",
-                )),
-            );
-            let favicon_generator = favicon::FaviconGenerator::new(
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
-                hostdata.decoded_subdomain,
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
-                get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
-                image_properties,
-            );
-            let image_png = match favicon_generator.write_png(&ctx).await {
-                Some(png) => png,
-                None => return Response::error("Internal server error: cant create image", 500),
-            };
-            Response::from_bytes(image_png)
+            owariya_response(req, ctx, ImageOutputFormat::Png).await
         })
         .run(req, env)
         .await
+}
+
+async fn owariya_response<D>(
+    req: Request,
+    ctx: RouteContext<D>,
+    image_format: ImageOutputFormat,
+) -> Result<Response> {
+    let host = req
+        .headers()
+        .get("host")
+        .unwrap_or_default()
+        .unwrap_or_default();
+    let domain = get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_DOMAIN", "owari.shop");
+    let hostdata = Hostdata::new(host, domain);
+
+    let image_properties = ImageProperties::new(
+        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256")
+            .parse::<u32>()
+            .unwrap_or(256),
+        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256")
+            .parse::<u32>()
+            .unwrap_or(256),
+        rgba_from_hex(&get_var_or_default(
+            &ctx,
+            "WILDCARDSUBDOMAIN_BACKGROUND_COLOR",
+            "#c0c0c0ff",
+        )),
+        rgba_from_hex(&get_var_or_default(
+            &ctx,
+            "WILDCARDSUBDOMAIN_FONT_COLOR",
+            "#000000ff",
+        )),
+    );
+    let favicon_generator = FaviconGenerator::new(
+        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_FONT", "font.ttf"),
+        owariya_text(&ctx, hostdata.decoded_subdomain),
+        image_properties,
+    );
+
+    let image = match favicon_generator.write_image(&ctx, image_format).await {
+        Some(image) => image,
+        None => return Response::error("Internal server error: cant create image", 500),
+    };
+
+    Response::from_bytes(image)
+}
+
+fn owariya_text<D>(ctx: &RouteContext<D>, decoded_subdomain: String) -> Vec<String> {
+    if decoded_subdomain.is_empty() {
+        vec![
+            get_var_or_default(ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
+            get_var_or_default(ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや"),
+        ]
+    } else {
+        vec![
+            decoded_subdomain,
+            format!(
+                "{}{}",
+                get_var_or_default(ctx, "WILDCARDSUBDOMAIN_TOP_HALF_TEXT", "おわ"),
+                get_var_or_default(ctx, "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT", "りや")
+            ),
+        ]
+    }
 }
 
 fn get_var_or_default<D>(ctx: &RouteContext<D>, key: &str, default: &str) -> String {
