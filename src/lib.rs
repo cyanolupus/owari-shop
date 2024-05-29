@@ -69,10 +69,10 @@ async fn owariya_response<D>(
     let hostdata = Hostdata::new(host, domain);
 
     let image_properties = ImageProperties::new(
-        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_HEIGHT", "256")
+        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_HEIGHT", "256")
             .parse::<u32>()
             .unwrap_or(256),
-        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_PNG_WIDTH", "256")
+        get_var_or_default(&ctx, "WILDCARDSUBDOMAIN_WIDTH", "256")
             .parse::<u32>()
             .unwrap_or(256),
         rgba_from_hex(&get_var_or_default(
