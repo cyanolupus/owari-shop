@@ -626,6 +626,7 @@ dependencies = [
  "imageproc",
  "punycode",
  "rusttype",
+ "serde_json",
  "worker",
 ]
 

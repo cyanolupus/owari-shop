@@ -1,3 +1,5 @@
+use serde_json::{Value, from_str};
+
 pub struct Hostdata {
     pub subdomain: String,
     pub domain: String,
@@ -33,50 +35,47 @@ impl Hostdata {
         }
     }
 
-    pub fn create_html(&self) -> String {
+    pub fn create_html(&self, title_suffix: String) -> String {
         let html = include_str!("../static/index.html.tmpl");
-        html.replace("{{ .Title }}", &self.get_title())
+        html.replace("{{ .Title }}", &format!("{}{}", self.get_title(), title_suffix))
             .replace("{{ .Message }}", &self.get_message())
             .replace("{{ .Host }}", &self.host)
             .replace("{{ .Emoji }}", &self.get_emoji())
     }
 
     fn get_title(&self) -> String {
-        let subdomain = match self.decoded_subdomain.as_str() {
-            "jinsei" => "人生",
-            "konnendomo" => "今年度も",
-            "kotoshimo" => "今年も",
-            "kyoumo" => "今日も",
-            "" => "",
-            _ => &self.decoded_subdomain,
-        };
-        format!("{}おわりや", subdomain)
+        self.get_3tuple().0
     }
 
     fn get_message(&self) -> String {
-        match self.decoded_subdomain.as_str() {
-            "jinsei" => "もうだめ".to_string(),
-            "konnendomo" => "おめでとうございます".to_string(),
-            "kotoshimo" => "あけましておめでとうございます".to_string(),
-            "kyoumo" => "一日お疲れ様でした".to_string(),
-            "" => "おわりが売ってる".to_string(),
-            decoded_subdomain => format!("{}おわりが売ってる", decoded_subdomain),
-        }
+        self.get_3tuple().1
     }
 
     fn get_emoji(&self) -> String {
-        match self.decoded_subdomain.as_str() {
-            "christmas" => "🎄".to_string(),
-            "クリスマス" => "🎄".to_string(),
-            "halloween" => "🎃".to_string(),
-            "ハロウィン" => "🎃".to_string(),
-            "konnendomo" => "🌸".to_string(),
-            "今年度も" => "🌸".to_string(),
-            "kotoshimo" => "🌅".to_string(),
-            "今年も" => "🌅".to_string(),
-            "kyoumo" => "🌙".to_string(),
-            "今日も" => "🌙".to_string(),
-            _ => "✅".to_string(),
+        self.get_3tuple().2
+    }
+
+    fn get_3tuple(&self) -> (String, String, String) {
+        let json_str = include_str!("../static/3tuples.json");
+        let json: Value = from_str(json_str).unwrap_or_default();
+
+        let default_3tuple = match json.get("default") {
+            Some(value) => {
+                let message = value.get("message").unwrap_or(&Value::Null).as_str().unwrap_or_default();
+                let emoji = value.get("emoji").unwrap_or(&Value::Null).as_str().unwrap_or_default();
+                (self.decoded_subdomain.clone(), format!("{}{}", self.decoded_subdomain, message), emoji.to_string())
+            }
+            _ => (self.decoded_subdomain.clone(), format!("{}おわりが売ってる", self.decoded_subdomain), "✅".to_string()),
+        };
+
+        match json.get(&self.decoded_subdomain) {
+            Some(value) => {
+                let title = value.get("title").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.0.as_str());
+                let message = value.get("message").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.1.as_str());
+                let emoji = value.get("emoji").unwrap_or(&Value::Null).as_str().unwrap_or(default_3tuple.2.as_str());
+                (title.to_string(), message.to_string(), emoji.to_string())
+            }
+            _ => default_3tuple,
         }
     }
 }
