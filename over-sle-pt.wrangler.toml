@@ -1,0 +1,30 @@
+name = "over-sle-pt"
+workers_dev = true
+compatibility_date = "2023-01-15"
+main = "build/worker/shim.mjs"
+
+vars.WORKERS_RS_VERSION = "0.3.0"
+vars.WILDCARDSUBDOMAIN_DOMAIN = "over-sle.pt"
+vars.WILDCARDSUBDOMAIN_FONT = "font.ttf"
+vars.WILDCARDSUBDOMAIN_TOP_HALF_TEXT = "ねす"
+vars.WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT = "ぎた"
+vars.WILDCARDSUBDOMAIN_HEIGHT = "256"
+vars.WILDCARDSUBDOMAIN_WIDTH = "256"
+vars.WILDCARDSUBDOMAIN_BACKGROUND_COLOR = "#000000ff"
+vars.WILDCARDSUBDOMAIN_FONT_COLOR = "#cfcfcfff"
+
+routes = [
+    "over-sle.pt/*",
+    "*.over-sle.pt/*",
+]
+
+[build]
+command = "cargo install -q worker-build && worker-build --release" # required
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "over-sle-pt"
+preview_bucket_name = "over-sle-pt"
+
+# read more about configuring your Worker via wrangler.toml at:
+# https://developers.cloudflare.com/workers/cli-wrangler/configuration

@@ -31,6 +31,32 @@ jobs:
       - name: Deploy
         run: npx wrangler deploy --dry-run
 
+
+  over-sle-pt-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - name: Setup Wrangler
+        run: npm install wrangler --save-dev
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'latest'
+      - name: Rename
+        run: |
+          mv ./static/over-sle-pt.3tuples.json ./static/3tuples.json
+          mv ./over-sle-pt.wrangler.toml ./wrangler.toml
+      - name: Deploy
+        run: npx wrangler deploy --dry-run
+
   clippy:
     permissions:
       contents: read
