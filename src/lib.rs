@@ -1,5 +1,5 @@
 use image::{ImageOutputFormat, Rgba};
-use worker::{Request, Response, Router, RouteContext, Env, event, console_log, Date};
+use worker::{console_log, event, Date, Env, Request, Response, RouteContext, Router};
 
 mod favicon;
 use favicon::{FaviconGenerator, ImageProperties};
@@ -21,7 +21,11 @@ fn log_request(req: &Request) {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response, worker::Error> {
+pub async fn main(
+    req: Request,
+    env: Env,
+    _ctx: worker::Context,
+) -> Result<Response, worker::Error> {
     log_request(&req);
     utils::set_panic_hook();
 
@@ -49,11 +53,17 @@ fn version_response<D>(_: Request, ctx: RouteContext<D>) -> Result<Response, wor
     Response::ok(ctx.var("WORKERS_RS_VERSION")?.to_string())
 }
 
-async fn owariya_response_ico<D>(req: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
+async fn owariya_response_ico<D>(
+    req: Request,
+    ctx: RouteContext<D>,
+) -> Result<Response, worker::Error> {
     owariya_response(req, ctx, ImageOutputFormat::Ico).await
 }
 
-async fn owariya_response_png<D>(req: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
+async fn owariya_response_png<D>(
+    req: Request,
+    ctx: RouteContext<D>,
+) -> Result<Response, worker::Error> {
     owariya_response(req, ctx, ImageOutputFormat::Png).await
 }
 

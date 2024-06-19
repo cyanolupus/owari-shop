@@ -3,7 +3,6 @@ use serde_json::Value;
 const INDEX_HTML_TEMPLATE: &str = include_str!("../static/index.html.tmpl");
 const THREE_TUPLES_JSON_STR: &str = include_str!("../static/3tuples.json");
 
-
 struct ThreeTuple {
     title: String,
     message: String,
