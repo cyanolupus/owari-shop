@@ -1,4 +1,7 @@
-use serde_json::{from_str, Value};
+use serde_json::Value;
+
+const INDEX_HTML_TEMPLATE: &str = include_str!("../static/index.html.tmpl");
+const THREE_TUPLES_JSON_STR: &str = include_str!("../static/3tuples.json");
 
 struct ThreeTuple {
     title: String,
@@ -15,14 +18,14 @@ impl ThreeTuple {
         }
     }
 
-    fn get_str_from_json(json: &Value, key: &str) -> Option<String> {
-        json.get(key)
+    fn get_str_from_json(data: &Value, key: &str) -> Option<String> {
+        data.get(key)
             .and_then(|value| value.as_str().map(|s| s.to_string()))
     }
 
-    fn get_from_json(json: &Value, key: &str) -> ThreeTuple {
-        let default = ThreeTuple::get_default_from_json(json);
-        match json.get(key) {
+    fn get_from_json(data: &Value, key: &str) -> ThreeTuple {
+        let default = ThreeTuple::get_default_from_json(data);
+        match data.get(key) {
             Some(value) => ThreeTuple::new(
                 Self::get_str_from_json(value, "title")
                     .unwrap_or(format!("{}{}", key, default.title)),
@@ -38,8 +41,8 @@ impl ThreeTuple {
         }
     }
 
-    fn get_default_from_json(json: &Value) -> ThreeTuple {
-        let value = json.get("default").unwrap();
+    fn get_default_from_json(data: &Value) -> ThreeTuple {
+        let value = data.get("default").unwrap();
         ThreeTuple::new(
             Self::get_str_from_json(value, "title").unwrap_or_default(),
             Self::get_str_from_json(value, "message").unwrap_or_default(),
@@ -75,9 +78,8 @@ impl Hostdata {
         };
         let decoded_subdomain = Self::decode(subdomain.clone());
 
-        let json_str = include_str!("../static/3tuples.json");
-        let json: Value = from_str(json_str).unwrap_or_default();
-        let three_tuple = ThreeTuple::get_from_json(&json, &decoded_subdomain);
+        let data = serde_json::from_str(THREE_TUPLES_JSON_STR).unwrap();
+        let three_tuple = ThreeTuple::get_from_json(&data, &decoded_subdomain);
 
         Hostdata {
             domain,
@@ -96,7 +98,7 @@ impl Hostdata {
     }
 
     pub fn create_html(&self, title_suffix: String) -> String {
-        let html = include_str!("../static/index.html.tmpl");
+        let html = INDEX_HTML_TEMPLATE.to_string();
         html.replace(
             "{{ .Title }}",
             &format!("{}{}", self.three_tuple.title, title_suffix),
