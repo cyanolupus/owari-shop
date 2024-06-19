@@ -1,5 +1,5 @@
 use image::{ImageOutputFormat, Rgba};
-use worker::*;
+use worker::{Request, Response, Router, RouteContext, Env, event, console_log, Date};
 
 mod favicon;
 use favicon::{FaviconGenerator, ImageProperties};
@@ -21,7 +21,7 @@ fn log_request(req: &Request) {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
+pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response, worker::Error> {
     log_request(&req);
     utils::set_panic_hook();
 
@@ -35,7 +35,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         .await
 }
 
-fn index_response<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+fn index_response<D>(req: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
     Response::from_html(
         Hostdata::new(host(&req), domain(&ctx)?).create_html(format!(
             "{}{}",
@@ -45,15 +45,15 @@ fn index_response<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
     )
 }
 
-fn version_response<D>(_: Request, ctx: RouteContext<D>) -> Result<Response> {
+fn version_response<D>(_: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
     Response::ok(ctx.var("WORKERS_RS_VERSION")?.to_string())
 }
 
-async fn owariya_response_ico<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+async fn owariya_response_ico<D>(req: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
     owariya_response(req, ctx, ImageOutputFormat::Ico).await
 }
 
-async fn owariya_response_png<D>(req: Request, ctx: RouteContext<D>) -> Result<Response> {
+async fn owariya_response_png<D>(req: Request, ctx: RouteContext<D>) -> Result<Response, worker::Error> {
     owariya_response(req, ctx, ImageOutputFormat::Png).await
 }
 
@@ -61,7 +61,7 @@ async fn owariya_response<D>(
     req: Request,
     ctx: RouteContext<D>,
     image_format: ImageOutputFormat,
-) -> Result<Response> {
+) -> Result<Response, worker::Error> {
     let image_properties = ImageProperties::new(
         ctx.var("WILDCARDSUBDOMAIN_HEIGHT")?
             .to_string()
@@ -123,6 +123,6 @@ fn host(req: &Request) -> String {
         .unwrap_or_default()
 }
 
-fn domain<D>(ctx: &RouteContext<D>) -> Result<String> {
+fn domain<D>(ctx: &RouteContext<D>) -> Result<String, worker::Error> {
     ctx.var("WILDCARDSUBDOMAIN_DOMAIN").map(|v| v.to_string())
 }
