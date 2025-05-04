@@ -32,5 +32,5 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          npx wrangler r2 object put owari-shop/font.ttf --file="static/Koruri-Extrabold.ttf"
+          npx wrangler r2 object put owari-shop/font.ttf --file="static/Koruri-Extrabold.ttf" --remote
           npx wrangler deploy
