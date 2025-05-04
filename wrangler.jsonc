@@ -1,0 +1,35 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"name": "owari-shop",
+	"compatibility_date": "2025-05-04",
+    "main": "build/worker/shim.mjs",
+    "vars": {
+        "WORKERS_RS_VERSION": "0.5.0",
+        "WILDCARDSUBDOMAIN_DOMAIN": "owari.shop",
+        "WILDCARDSUBDOMAIN_FONT": "font.ttf",
+        "WILDCARDSUBDOMAIN_TOP_HALF_TEXT": "おわ",
+        "WILDCARDSUBDOMAIN_BOTTOM_HALF_TEXT": "りや",
+        "WILDCARDSUBDOMAIN_HEIGHT": "256",
+        "WILDCARDSUBDOMAIN_WIDTH": "256",
+        "WILDCARDSUBDOMAIN_BACKGROUND_COLOR": "#c0c0c0ff",
+        "WILDCARDSUBDOMAIN_FONT_COLOR": "#000000ff"
+    },
+    "routes": [
+        "owari.shop/*",
+        "*.owari.shop/*"
+    ],
+
+    "r2_buckets": [
+        {
+            "binding": "BUCKET",
+            "bucket_name": "owari-shop",
+            "preview_bucket_name": "owari-shop"
+        }
+    ],
+	"build": {
+		"command": "cargo install -q worker-build && worker-build --release",
+	}
+}
