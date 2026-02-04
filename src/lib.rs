@@ -1,4 +1,4 @@
-use image::{ImageOutputFormat, Rgba};
+use image::{ImageFormat, Rgba};
 use worker::{console_log, event, Date, Env, Request, Response, RouteContext, Router};
 
 mod favicon;
@@ -57,20 +57,20 @@ async fn owariya_response_ico<D>(
     req: Request,
     ctx: RouteContext<D>,
 ) -> Result<Response, worker::Error> {
-    owariya_response(req, ctx, ImageOutputFormat::Ico).await
+    owariya_response(req, ctx, ImageFormat::Ico).await
 }
 
 async fn owariya_response_png<D>(
     req: Request,
     ctx: RouteContext<D>,
 ) -> Result<Response, worker::Error> {
-    owariya_response(req, ctx, ImageOutputFormat::Png).await
+    owariya_response(req, ctx, ImageFormat::Png).await
 }
 
 async fn owariya_response<D>(
     req: Request,
     ctx: RouteContext<D>,
-    image_format: ImageOutputFormat,
+    image_format: ImageFormat,
 ) -> Result<Response, worker::Error> {
     let image_properties = ImageProperties::new(
         ctx.var("WILDCARDSUBDOMAIN_HEIGHT")?

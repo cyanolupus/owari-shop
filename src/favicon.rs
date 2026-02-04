@@ -1,6 +1,6 @@
-use image::Rgba;
-use imageproc::drawing::{draw_text_mut, Canvas};
-use rusttype::{Font, Scale};
+use ab_glyph::{Font, FontRef, PxScale, ScaleFont};
+use image::{DynamicImage, Rgba};
+use imageproc::drawing::draw_text_mut;
 use worker::RouteContext;
 
 pub struct FaviconGenerator {
@@ -43,57 +43,60 @@ impl FaviconGenerator {
     pub async fn write_image<D>(
         &self,
         ctx: &RouteContext<D>,
-        format: image::ImageOutputFormat,
+        format: image::ImageFormat,
     ) -> Option<Vec<u8>> {
-        let font = match self.get_font(ctx).await {
-            Some(font) => font,
+        let font_bytes = match self.get_font_bytes(ctx).await {
+            Some(bytes) => bytes,
             None => return None,
         };
+
+        let font = match FontRef::try_from_slice(&font_bytes) {
+            Ok(f) => f,
+            Err(_) => return None,
+        };
+
         let mut buf = Vec::new();
-        self.create_image(font).write_to(&mut buf, format).ok()?;
+        self.create_image(&font)
+            .write_to(&mut std::io::Cursor::new(&mut buf), format)
+            .ok()?;
         Some(buf)
     }
 
-    fn create_image(&self, font: Font<'_>) -> image::DynamicImage {
-        let mut img = image::DynamicImage::new_rgb8(
-            self.image_properties.width,
-            self.image_properties.height,
-        );
-
-        let x = 0;
-        let mut y = 0;
-        let height_f32 = self.image_properties.height as f32;
-        let width_f32 = self.image_properties.width as f32;
+    fn create_image(&self, font: &FontRef) -> DynamicImage {
+        let mut img =
+            image::ImageBuffer::new(self.image_properties.width, self.image_properties.height);
 
         for x in 0..self.image_properties.width {
             for y in 0..self.image_properties.height {
-                img.draw_pixel(x, y, self.image_properties.background_color)
+                img.put_pixel(x, y, self.image_properties.background_color);
             }
         }
 
+        let height_f32 = self.image_properties.height as f32;
+        let width_f32 = self.image_properties.width as f32;
         let text_height = height_f32 / (self.target_text.len() as f32);
+
+        let mut y_pos = 0.0;
         for text in &self.target_text {
-            let scale = Self::get_scale_by_font(text_height, width_f32, &font, text);
+            let scale = self.get_optimal_scale(text_height, width_f32, font, text);
+
             draw_text_mut(
                 &mut img,
                 self.image_properties.font_color,
-                x,
-                y,
+                0,
+                y_pos as i32,
                 scale,
-                &font,
+                font,
                 text,
             );
-            y += text_height as u32;
+            y_pos += text_height;
         }
 
-        img
+        image::DynamicImage::ImageRgba8(img)
     }
 
-    async fn get_font<D>(&self, ctx: &RouteContext<D>) -> Option<Font<'static>> {
-        match Self::r2_get(ctx, &self.fontpath).await {
-            Some(font_bytes) => Font::try_from_vec(font_bytes),
-            None => None,
-        }
+    async fn get_font_bytes<D>(&self, ctx: &RouteContext<D>) -> Option<Vec<u8>> {
+        Self::r2_get(ctx, &self.fontpath).await
     }
 
     async fn r2_get<D>(ctx: &RouteContext<D>, key: &str) -> Option<Vec<u8>> {
@@ -102,18 +105,26 @@ impl FaviconGenerator {
         item.body()?.bytes().await.ok()
     }
 
-    fn get_scale_by_font(height: f32, width: f32, font: &Font, text: &str) -> Scale {
-        let mut glyph_width_sum = 0.0;
+    fn get_optimal_scale(
+        &self,
+        target_height: f32,
+        target_width: f32,
+        font: &FontRef,
+        text: &str,
+    ) -> PxScale {
+        let scale = PxScale::from(target_height);
+        let scaled_font = font.as_scaled(scale);
+
+        let mut width_sum = 0.0;
         for c in text.chars() {
-            let glyph = font.glyph(c).scaled(Scale::uniform(height));
-            glyph_width_sum += glyph.h_metrics().advance_width;
+            width_sum += scaled_font.h_advance(scaled_font.glyph_id(c));
         }
-        if glyph_width_sum == 0.0 {
-            glyph_width_sum = 1.0;
-        }
-        Scale {
-            x: height * width / glyph_width_sum,
-            y: height,
+
+        if width_sum > target_width {
+            let factor = target_width / width_sum;
+            PxScale::from(target_height * factor)
+        } else {
+            scale
         }
     }
 }
