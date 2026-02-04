@@ -112,19 +112,26 @@ impl FaviconGenerator {
         font: &FontRef,
         text: &str,
     ) -> PxScale {
-        let scale = PxScale::from(target_height);
-        let scaled_font = font.as_scaled(scale);
+        let base_scale = PxScale::from(target_height);
+        let scaled_font = font.as_scaled(base_scale);
 
         let mut width_sum = 0.0;
         for c in text.chars() {
             width_sum += scaled_font.h_advance(scaled_font.glyph_id(c));
         }
 
-        if width_sum > target_width {
-            let factor = target_width / width_sum;
-            PxScale::from(target_height * factor)
-        } else {
-            scale
+        if width_sum == 0.0 {
+            return PxScale {
+                x: target_height,
+                y: target_height,
+            };
+        }
+
+        let factor = target_width / width_sum;
+
+        PxScale {
+            x: target_height * factor,
+            y: target_height,
         }
     }
 }
