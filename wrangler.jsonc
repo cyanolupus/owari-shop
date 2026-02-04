@@ -3,8 +3,8 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"name": "owari-shop",
-	"compatibility_date": "2025-05-04",
+    "name": "owari-shop",
+    "compatibility_date": "2025-05-04",
     "main": "build/worker/shim.mjs",
     "vars": {
         "WORKERS_RS_VERSION": "0.5.0",
@@ -21,7 +21,6 @@
         "owari.shop/*",
         "*.owari.shop/*"
     ],
-
     "r2_buckets": [
         {
             "binding": "BUCKET",
@@ -29,7 +28,7 @@
             "preview_bucket_name": "owari-shop"
         }
     ],
-	"build": {
-		"command": "cargo install -q worker-build && worker-build --release",
-	}
+    "build": {
+        "command": "cargo install -q worker-build@0.7.4 && worker-build --release",
+    }
 }
