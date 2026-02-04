@@ -1,5 +1,8 @@
 name: main CI
 
+permissions:
+  contents: read
+
 concurrency:
   group: main
   cancel-in-progress: false
